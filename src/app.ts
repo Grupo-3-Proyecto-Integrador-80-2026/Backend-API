@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import healthRoutes from "./routes/health.routes";
 
 const app = express();
 
@@ -7,12 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Ruta de prueba
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "Backend API is running"
-  });
-});
+// Routes
+app.use("/api/health", healthRoutes);
 
 export default app;
