@@ -8,6 +8,7 @@ export interface User {
   role: string;
 }
 
+// Obtener todos los usuarios
 export const getAllUsers = async (): Promise<User[]> => {
   const snapshot = await db.collection("users").get();
 
@@ -15,4 +16,20 @@ export const getAllUsers = async (): Promise<User[]> => {
     id: doc.id,
     ...doc.data()
   })) as User[];
+};
+
+// Obtener un usuario por su UID
+export const getUserById = async (
+  uid: string
+): Promise<User | null> => {
+  const doc = await db.collection("users").doc(uid).get();
+
+  if (!doc.exists) {
+    return null;
+  }
+
+  return {
+    id: doc.id,
+    ...doc.data()
+  } as User;
 };
