@@ -12,6 +12,7 @@ export const verifyFirebaseToken = async (
     // Comprobar que exista el encabezado Authorization
     if (!authorization || !authorization.startsWith("Bearer ")) {
       res.status(401).json({
+        success: false,
         message: "Authentication token is required"
       });
       return;
@@ -29,8 +30,23 @@ export const verifyFirebaseToken = async (
     next();
 
   } catch (error) {
-    res.status(401).json({
-      message: "Invalid or expired authentication token"
-    });
+    const firebaseError = error as { code?: string };
+
+    const invalidTokenErrors = [
+      "auth/argument-error",
+      "auth/invalid-id-token",
+      "auth/id-token-expired"
+    ];
+
+    if (firebaseError.code && invalidTokenErrors.includes(firebaseError.code)) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid or expired authentication token"
+      });
+      return;
+    }
+
+    // Los errores inesperados pasan al middleware global
+    throw error;
   }
 };
