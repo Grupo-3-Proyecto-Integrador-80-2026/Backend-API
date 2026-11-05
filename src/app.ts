@@ -1,18 +1,18 @@
 import express from "express";
 import cors from "cors";
+import healthRoutes from "./routes/health.routes";
+import firebaseTestRoutes from "./routes/firebase-test.routes";
+import protectedRoutes from "./routes/protected.routes";
+import userRoutes from "./routes/user.routes";
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Ruta de prueba
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "Backend API is running"
-  });
-});
+app.use("/api/health", healthRoutes);
+app.use("/api/test/firebase", firebaseTestRoutes);
+app.use("/api/protected", protectedRoutes);
+app.use("/api/users", userRoutes);
 
 export default app;
