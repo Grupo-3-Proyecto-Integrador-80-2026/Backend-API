@@ -33,3 +33,7 @@ export const getUserById = async (
     ...doc.data()
   } as User;
 };
+
+export const getFirestoreSample = async () => {
+  return await db.collection("users").limit(1).get();
+};
