@@ -15,8 +15,8 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Conexión con Firebase realizada correctamente.
- *       500:
- *         description: Error al conectar con Firebase.
+ *       503:
+ *         description: Firestore no responde; el cuerpo incluye connected en false y un mensaje con el error.
  */
 router.get("/", checkFirebaseConnection);
 
