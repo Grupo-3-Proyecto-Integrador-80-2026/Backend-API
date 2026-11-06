@@ -6,8 +6,28 @@ services:
     container_name: backend-api
     ports:
       - "3000:3000"
-    env_file:
-      - .env
+    environment:
+      - PORT=3000
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/serviceAccountKey.json
     volumes:
       - ./credentials:/app/credentials:ro
     restart: unless-stopped
+    networks:
+      - salon-network
+
+  frontend:
+    build:
+      context: ../Frontend-Collaborative-study-room-platform/frontend
+      dockerfile: Dockerfile
+    container_name: frontend-app
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - salon-network
+
+networks:
+  salon-network:
+    driver: bridge
