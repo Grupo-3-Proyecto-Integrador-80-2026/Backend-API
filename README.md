@@ -1,128 +1,183 @@
+# Backend API — Salón de Estudio Colaborativo en Tiempo Real
 
-# Backend API - Proyecto Integrador
+API REST desacoplada desarrollada con **Node.js, TypeScript y Express 5** para la plataforma del Proyecto Integrador I (Grupo 3). Este servicio gestiona la lógica del negocio, la seguridad mediante Firebase Admin SDK y la persistencia en Cloud Firestore.
 
-Backend desarrollado con Node.js, TypeScript y Express para el Proyecto Integrador del Grupo 3.
+---
 
-## Tecnologías
+## 🛠️ Tecnologías
 
-- Node.js
-- TypeScript
-- Express 5
-- Firebase Authentication
-- Firebase Admin SDK
-- Cloud Firestore
-- Zod
-- Swagger / OpenAPI
+- **Lenguaje y Entorno:** Node.js (v22 LTS) y TypeScript
+- **Framework Web:** Express 5
+- **Seguridad y Base de Datos:** Firebase Authentication (Admin SDK) y Cloud Firestore (NoSQL)
+- **Validación de Esquemas:** Zod
+- **Documentación de API:** Swagger / OpenAPI 3.0 (`swagger-ui-express` y `swagger-jsdoc`)
+- **Contenerización y Despliegue:** Docker, Docker Compose y Render
 
-## Requisitos
+---
 
-- Node.js y npm.
-- Git.
-- Acceso al proyecto Firebase.
-- Credenciales de Firebase Admin SDK.
+## 📋 Requisitos Previos
 
-## Instalación
+- **Node.js:** v20.0.0 o superior (recomendado v22 LTS)
+- **npm:** v10.0.0 o superior
+- **Docker y Docker Compose:** v24.0 o superior (para ejecución contenerizada)
+- **Git**
+- Archivo de credenciales de Firebase Admin SDK (`serviceAccountKey.json`)
 
-Clonar el repositorio:
+---
 
-```bash
-git clone https://github.com/Grupo-3-Proyecto-Integrador-80-2026/Backend-API.git
-```
+## ⚙️ Variables de Entorno
 
-Ingresar a la carpeta:
+Crea el archivo `.env` en la raíz del proyecto basándote en la plantilla `.env.example`:
 
 ```bash
-cd Backend-API
+cp .env.example .env
 ```
 
-Instalar dependencias:
-
-```bash
-npm install
-```
-
-## Variables de entorno
-
-Crear un archivo `.env` en la raíz del proyecto, tomando como referencia `.env.example`.
+Contenido base del archivo `.env`:
 
 ```env
 PORT=3000
 GOOGLE_APPLICATION_CREDENTIALS=./credentials/serviceAccountKey.json
 ```
 
-### Configuración de Firebase
+### Configuración de Credenciales de Firebase
 
-1. Obtener las credenciales de Firebase Admin SDK mediante el administrador del proyecto.
-2. Crear una carpeta `credentials` en la raíz del backend.
-3. Guardar el archivo JSON de credenciales dentro de esa carpeta con el nombre `serviceAccountKey.json`.
-4. Configurar la ruta en `GOOGLE_APPLICATION_CREDENTIALS`.
+1. Solicita al administrador del proyecto la clave de servicio de Firebase Admin SDK.
+2. Crea la carpeta `credentials/` en la raíz de `Backend-API`.
+3. Guarda el archivo como `serviceAccountKey.json` dentro de esa carpeta.
+4. Verifica que `credentials/` y `.env` se encuentren en el archivo `.gitignore` para no subir información sensible al repositorio remoto.
 
-**Importante:** Nunca subir el archivo JSON de credenciales ni el `.env` a GitHub.
+---
 
-Cada desarrollador debe utilizar sus propias credenciales autorizadas.
+## 🚀 Ejecución en Modo Local (Desarrollo)
 
-## Ejecutar el proyecto
+1. **Instalar dependencias del proyecto:**
+   ```bash
+   npm install
+   ```
 
-Modo desarrollo:
+2. **Iniciar el servidor en modo desarrollo (recarga automática con `tsx watch`):**
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
+3. **Verificar tipado y compilar a JavaScript (TypeScript Build):**
+   ```bash
+   npm run build
+   ```
+
+4. **Ejecutar la versión compilada:**
+   ```bash
+   npm start
+   ```
+
+El servidor quedará disponible en: `http://localhost:3000`.
+
+---
+
+## 🐳 Ejecución con Docker
+
+### Opción A: Levantar únicamente el contenedor de la API
+
+1. **Construir la imagen de Docker del backend:**
+   ```bash
+   docker build -t backend-api .
+   ```
+
+2. **Ejecutar el contenedor montando las credenciales locales:**
+   ```bash
+   docker run -d -p 3000:3000 \
+     -v $(pwd)/credentials:/app/credentials:ro \
+     -e PORT=3000 \
+     -e GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/serviceAccountKey.json \
+     --name backend-container backend-api
+   ```
+
+3. **Detener y remover el contenedor:**
+   ```bash
+   docker stop backend-container && docker rm backend-container
+   ```
+
+---
+
+### Opción B: Orquestación Completa con Docker Compose (Frontend + Backend)
+
+Para levantar **todo el sistema integrado** con un solo comando, asegúrate de tener clonados ambos repositorios como carpetas hermanas (al mismo nivel):
+
+```text
+directorio-de-trabajo/
+├── Backend-API/
+│   ├── docker-compose.yml
+│   └── Dockerfile
+└── Frontend-Collaborative-study-room-platform/
+    └── Dockerfile
 ```
 
-Compilar TypeScript:
+1. **Ubicarse en la raíz del backend:**
+   ```bash
+   cd Backend-API
+   ```
 
-```bash
-npm run build
-```
+2. **Construir y levantar todos los servicios:**
+   ```bash
+   docker compose up --build
+   ```
 
-Ejecutar versión compilada:
+3. **Acceso a los servicios desplegados localmente:**
+   - **Backend API & Swagger:** [http://localhost:3000](http://localhost:3000) | [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+   - **Frontend Web App:** [http://localhost:8080](http://localhost:8080)
 
-```bash
-npm start
-```
+4. **Detener la ejecución completa:**
+   ```bash
+   docker compose down
+   ```
 
-El servidor utiliza el puerto 3000 por defecto.
+---
 
-## Endpoints principales
+## 📡 Endpoints Principales
 
-| Método | Endpoint | Descripción | Acceso |
-|---|---|---|---|
-| GET | `/api/health` | Estado del servidor | Público |
-| GET | `/api/test/firebase` | Verificar conexión Firebase | Público |
-| GET | `/api/protected` | Consultar datos protegidos | Autenticado |
-| GET | `/api/users/me` | Consultar perfil propio | Autenticado |
-| GET | `/api/users` | Consultar todos los usuarios | Administrador |
+| Método | Endpoint | Descripción | Acceso | Historia Técnica |
+|---|---|---|---|---|
+| `GET` | `/api/health` | Estado de salud y actividad del servidor | Público | Monitoreo |
+| `GET` | `/api/test/firebase` | Verificación síncrona de conexión con Firestore (`users`) | Público | TS-00 (Sprint 0) |
+| `GET` | `/api-docs` | Documentación interactiva Swagger UI | Público | TS-00 / TS-01 |
+| `GET` | `/api/protected` | Verificación de token JWT de Firebase Auth | Autenticado | TS-01 (Sprint 1) |
+| `GET` | `/api/users/me` | Consulta del perfil del usuario autenticado | Autenticado | TS-01 / US-04 |
+| `GET` | `/api/users` | Listado general de usuarios registrados | Solo Admin | Administración |
 
-## Autenticación
+---
 
-La API utiliza Firebase Authentication.
+## 🔐 Autenticación
 
-Los endpoints protegidos requieren un Firebase ID Token mediante el encabezado:
+Las rutas protegidas requieren un token de identidad emitido por Firebase Authentication enviado mediante el encabezado HTTP Authorization:
 
 ```http
 Authorization: Bearer <FIREBASE_ID_TOKEN>
 ```
 
-## Documentación Swagger
+---
 
-Con el servidor ejecutándose, acceder a:
+## 📖 Documentación Swagger / OpenAPI
 
-http://localhost:3000/api-docs
+La documentación interactiva de la API está disponible en:
 
-Desde Swagger UI se pueden consultar y probar los endpoints documentados.
+- **Local:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- **Producción (Render):** [https://backend-api-grupo3.onrender.com/api-docs](https://backend-api-grupo3.onrender.com/api-docs)
 
-## Arquitectura
+Desde Swagger UI se pueden inspeccionar los esquemas y ejecutar pruebas directamente sobre el servidor tanto en local como en producción.
 
-El backend está organizado por capas:
+---
 
-- `config`: configuración de Firebase y Swagger.
-- `controllers`: manejo de solicitudes HTTP.
-- `middlewares`: autenticación, autorización, validación y errores.
-- `repositories`: acceso a Firestore.
-- `routes`: definición de endpoints.
-- `services`: lógica de negocio.
-- `validators`: esquemas de validación.
+## 🏗️ Arquitectura por Capas
 
-## Proyecto
+El backend implementa una separación estricta de responsabilidades:
 
-Proyecto Integrador - Grupo 3.
+- **`config/`**: Inicialización de Firebase Admin SDK y configuración de Swagger.
+- **`routes/`**: Definición y enrutamiento de endpoints HTTP.
+- **`controllers/`**: Procesamiento de peticiones, códigos de estado y respuestas HTTP.
+- **`services/`**: Lógica de negocio y orquestación de operaciones.
+- **`repositories/`**: Acceso directo y consultas a las colecciones de Cloud Firestore.
+- **`middlewares/`**: Validación de esquemas, verificación de tokens JWT, control de roles y manejo global de errores.
+- **`validators/`**: Esquemas de validación de entrada implementados con Zod.
+
+---

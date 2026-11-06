@@ -35,5 +35,5 @@ export const getUserById = async (
 };
 
 export const getFirestoreSample = async () => {
-  return await db.collection("users").limit(1).get();
+  return await db.collection("users").get();
 };
