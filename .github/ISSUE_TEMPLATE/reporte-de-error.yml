@@ -1,0 +1,74 @@
+name: Reporte de error
+description: Reporta un error encontrado al probar la aplicación publicada
+title: "[US-xx] Descripción corta del error"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reporta solo errores reproducidos en **producción** (Vercel / Render), nunca en local.
+  - type: input
+    id: historia
+    attributes:
+      label: Historia y caso de prueba
+      description: Código de la historia y del caso de prueba que falló.
+      placeholder: "TS-00 · CP-TS00-03"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL donde ocurre
+      description: Dirección de producción donde se reproduce el error.
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador y dispositivo
+      placeholder: "Chrome 1xx en Windows · Firefox 1xx con NVDA · Chrome en Android"
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Resultado esperado
+      description: Lo que debería pasar según el escenario Dado / Cuando / Entonces.
+    validations:
+      required: true
+  - type: textarea
+    id: obtenido
+    attributes:
+      label: Resultado obtenido
+      description: Lo que pasa realmente.
+    validations:
+      required: true
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: Severidad
+      options:
+        - Crítica — la app no carga o una tarea núcleo (T1–T4) no se puede completar
+        - Alta — falla un escenario de aceptación o hay una barrera de accesibilidad
+        - Media — la función se completa con errores en estados, mensajes o validaciones
+        - Baja — detalle visual o de texto
+    validations:
+      required: true
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: Evidencia
+      description: Arrastra aquí la captura o el video con la URL visible y pega los errores de la consola si los hay.
+    validations:
+      required: true
