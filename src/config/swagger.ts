@@ -1,4 +1,4 @@
-
+// src/config/swagger.ts
 import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
@@ -12,19 +12,23 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: "/",
+        description: "Servidor actual (Producción / Local)",
+      },
+      {
         url: "http://localhost:3000",
         description: "Servidor local de desarrollo",
       },
     ],
     components: {
-        securitySchemes: {
-            bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
-            description: "Ingresa el Firebase ID Token del usuario.",
-            },
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Ingresa el Firebase ID Token del usuario.",
         },
+      },
     },
   },
   apis: ["./src/routes/*.ts"],
