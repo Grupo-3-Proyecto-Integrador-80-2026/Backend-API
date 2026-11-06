@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./credentials:/app/credentials:ro
+    restart: unless-stopped
