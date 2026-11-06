@@ -1,4 +1,5 @@
 // src/config/swagger.ts
+import path from "node:path";
 import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
@@ -31,7 +32,8 @@ const options: swaggerJsdoc.Options = {
       },
     },
   },
-  apis: ["./src/routes/*.ts"],
+  // Ruta relativa a este archivo: en desarrollo lee src/routes/*.ts y en producción (Docker) dist/routes/*.js
+  apis: [path.join(__dirname, "../routes/*.{ts,js}")],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

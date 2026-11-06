@@ -7,5 +7,6 @@ export const checkFirebaseConnection = async (
 ): Promise<void> => {
   const result = await testFirebaseConnection();
 
-  res.status(200).json(result);
+  // Si Firestore no responde, se informa con 503 para que el cliente muestre el estado de error
+  res.status(result.connected ? 200 : 503).json(result);
 };
