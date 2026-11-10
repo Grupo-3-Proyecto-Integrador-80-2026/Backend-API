@@ -4,6 +4,7 @@ import healthRoutes from "./routes/health.routes";
 import firebaseTestRoutes from "./routes/firebase-test.routes";
 import protectedRoutes from "./routes/protected.routes";
 import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 import { notFoundHandler } from "./middlewares/not-found.middleware";
 import swaggerUi from "swagger-ui-express";
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/health", healthRoutes);
 app.use("/api/test/firebase", firebaseTestRoutes);
 app.use("/api/protected", protectedRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 // Swagger documentation
