@@ -7,7 +7,8 @@ export const getProtectedData = (
   const user = res.locals.firebaseUser;
 
   res.status(200).json({
-    message: "Authenticated successfully",
+    success: true,
+    message: "Sesión verificada.",
     user: {
       uid: user.uid,
       email: user.email

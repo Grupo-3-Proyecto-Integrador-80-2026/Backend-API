@@ -7,6 +7,7 @@ export const notFoundHandler = (
 ): void => {
   res.status(404).json({
     success: false,
-    message: `Route not found: ${req.method} ${req.originalUrl}`
+    code: "NOT_FOUND",
+    message: `La ruta ${req.method} ${req.originalUrl} no existe.`
   });
 };

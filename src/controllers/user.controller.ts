@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import {
   getUsers,
-  getUserProfile
+  getUserProfile,
+  checkUsernameAvailability,
+  registerWithEmail,
+  completeProfile
 } from "../services/user.service";
 
 // Obtener todos los usuarios
@@ -23,19 +26,38 @@ export const getMyProfile = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const uid = res.locals.firebaseUser.uid;
-  const user = await getUserProfile(uid);
+  const user = await getUserProfile(res.locals.firebaseUser.uid);
 
-  if (!user) {
-    res.status(404).json({
-      success: false,
-      message: "User profile not found"
-    });
-    return;
-  }
+  res.status(200).json({ success: true, user });
+};
 
-  res.status(200).json({
-    success: true,
-    user
-  });
+// Completar el perfil del usuario autenticado (registro con Google)
+export const createMyProfile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const user = await completeProfile(res.locals.firebaseUser, req.body);
+
+  res.status(201).json({ success: true, user });
+};
+
+// Registro manual con correo y contraseña
+export const register = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const user = await registerWithEmail(req.body);
+
+  res.status(201).json({ success: true, user });
+};
+
+// Consultar si un nombre de usuario está libre
+export const getUsernameAvailability = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { username } = res.locals.validated.query;
+  const result = await checkUsernameAvailability(username);
+
+  res.status(200).json({ success: true, ...result });
 };
