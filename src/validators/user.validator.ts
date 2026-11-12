@@ -27,7 +27,10 @@ const emailSchema = requiredText("Escribe tu correo.")
   .toLowerCase()
   .min(1, "Escribe tu correo.")
   .max(254, "Tu correo puede tener máximo 254 caracteres.")
-  .pipe(z.email("Escribe un correo válido, por ejemplo nombre@correo.com."));
+  .pipe(z.email("Escribe un correo válido, por ejemplo nombre@correo.com."))
+  .refine((email) => email.endsWith(".edu.co"), {
+    message: "Debes usar un correo institucional terminado en .edu.co."
+  });
 
 // Política de contraseña (debe coincidir con la que se muestra en el formulario)
 const passwordSchema = z

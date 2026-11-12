@@ -138,6 +138,15 @@ export const completeProfile = async (
   token: DecodedIdToken,
   input: CompleteProfileInput
 ): Promise<UserProfile> => {
+  const email = (token.email || '').toLowerCase();
+  if (!email.endsWith('.edu.co')) {
+    throw new HttpError(
+      400,
+      "INVALID_EMAIL_DOMAIN",
+      "Solo se permiten cuentas de correo institucionales terminadas en .edu.co."
+    );
+  }
+
   const fromGoogle = splitFullName(typeof token.name === "string" ? token.name : "");
   const firstName = input.firstName ?? fromGoogle.firstName;
   const lastName = input.lastName ?? fromGoogle.lastName;
