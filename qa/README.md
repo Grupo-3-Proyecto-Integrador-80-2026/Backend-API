@@ -53,5 +53,5 @@ No ejecutar el modo escritura sin autorización del equipo y sin confirmar que l
 ## Documentación relacionada
 
 - Evidencia externa e inventario: carpeta `qa-evidence/US-01/` en la raíz del workspace (`README.md`).
-- Informe conjunto, matriz Gherkin, hallazgos y protocolo de producción: `Frontend-Collaborative-study-room-platform/frontend/qa/US-01.md` (repositorio hermano).
+- Informe conjunto, matriz Gherkin, hallazgos y protocolo de producción: `qa-evidence/US-01/documentacion/frontend/US-01.md` (carpeta externa en la raíz del workspace).
 - Borrador de PR: `qa/PR-US-01.md`.
