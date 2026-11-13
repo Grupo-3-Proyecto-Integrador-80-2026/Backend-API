@@ -6,8 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "test:typecheck": "tsc -p tsconfig.test.json",
-    "qa:e1-e4": "node qa/scripts/e1-e4-registration.mjs",
-    "qa:e5": "node qa/scripts/e5-concurrency.mjs",
+    "qa:e1-e4": "node ../qa-evidence/US-01/backend/scripts/e1-e4-registration.mjs",
+    "qa:e5": "node ../qa-evidence/US-01/backend/scripts/e5-concurrency.mjs",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
