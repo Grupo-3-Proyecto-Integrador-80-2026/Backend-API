@@ -50,4 +50,24 @@ describe("PI-277 | E5 parcial | contrato de transacción (Firestore simulado)", 
     expect(mocks.set).not.toHaveBeenCalled();
     expect(mocks.get).not.toHaveBeenCalled();
   });
+
+  it("US-02: un perfil Google completo no se reemplaza ni reserva otro username", async () => {
+    mocks.getAll.mockResolvedValue([{ exists: true, get: () => "username_anterior" }, { exists: false }]);
+    await expect(createUserProfile("uid-qa", { ...input, provider: "google.com" }))
+      .resolves.toEqual({ status: "profile-exists" });
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.set).not.toHaveBeenCalled();
+  });
+
+  it("US-02: completa un documento Google sin username y reserva atómicamente", async () => {
+    mocks.getAll.mockResolvedValue([{ exists: true, get: () => undefined }, { exists: false }]);
+    await expect(createUserProfile("uid-qa", { ...input, provider: "google.com" }))
+      .resolves.toMatchObject({ status: "created" });
+    expect(mocks.create).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ path: "usernames/ana_qa" }), expect.objectContaining({ uid: "uid-qa" })
+    );
+    expect(mocks.set).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ path: "users/uid-qa" }), expect.objectContaining({ provider: "google.com" })
+    );
+  });
 });
