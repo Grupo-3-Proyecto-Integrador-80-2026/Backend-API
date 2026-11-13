@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "vitest run",
+    "test:typecheck": "tsc -p tsconfig.test.json",
+    "qa:e1-e4": "node ../qa-evidence/US-01/backend/scripts/e1-e4-registration.mjs",
+    "qa:e5": "node ../qa-evidence/US-01/backend/scripts/e5-concurrency.mjs",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
@@ -36,7 +40,8 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
   },
   "allowScripts": {
     "@firebase/util@1.15.3": true,
