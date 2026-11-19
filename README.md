@@ -197,6 +197,8 @@ Códigos: `VALIDATION_ERROR` e `INVALID_JSON` (400), `AUTH_REQUIRED` e `INVALID_
 
 ## 📖 Documentación Swagger / OpenAPI
 
+TS-02: [modelo de salas y mensajes](docs/modelo-salas.md), [contrato Socket.IO](docs/eventos-socket.md) y [ejecución y despliegue del servicio de tiempo real](backend-realtime/README.md). El CRUD HTTP de `/api/rooms` aparece en Swagger bajo **Salas**.
+
 La documentación interactiva de la API está disponible en:
 
 - **Local:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
