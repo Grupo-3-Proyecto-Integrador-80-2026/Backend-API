@@ -9,7 +9,8 @@ router.use(verifyFirebaseToken);
 function roomName(body: unknown): string {
   const name = (body as { name?: unknown } | null)?.name;
   if (typeof name !== "string" || !name.trim() || name.trim().length > 80) {
-    throw new HttpError(400, "INVALID_ROOM_NAME", "Escribe un nombre de sala de 1 a 80 caracteres.");
+    const message = "Escribe un nombre de sala de 1 a 80 caracteres.";
+    throw new HttpError(400, "INVALID_ROOM_NAME", message, [{ field: "name", message }]);
   }
   return name.trim();
 }
@@ -47,6 +48,7 @@ router.param("id", (_req, _res, next, id) => {
  *   get:
  *     tags: [Salas]
  *     summary: Listar solo las salas del usuario autenticado
+ *     description: El dashboard recibe rooms vacío si el usuario aún no ha creado salas. Cada elemento contiene el ID de invitación que se puede copiar.
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       '200':
@@ -62,6 +64,7 @@ router.param("id", (_req, _res, next, id) => {
  *   post:
  *     tags: [Salas]
  *     summary: Crear una sala con ID de invitación único
+ *     description: El servidor recorta los espacios externos del nombre, genera room.id y asigna room.ownerId desde el token. El frontend puede abrir la sala con ese ID como anfitrión.
  *     security: [{ bearerAuth: [] }]
  *     requestBody: { $ref: '#/components/requestBodies/RoomName' }
  *     responses:
@@ -74,7 +77,16 @@ router.param("id", (_req, _res, next, id) => {
  *               properties:
  *                 success: { type: boolean }
  *                 room: { $ref: '#/components/schemas/Room' }
- *       '400': { description: INVALID_ROOM_NAME o INVALID_JSON }
+ *       '400':
+ *         description: INVALID_ROOM_NAME si el nombre recortado está vacío o supera 80 caracteres. INVALID_JSON si el cuerpo no se puede leer.
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *             example:
+ *               success: false
+ *               code: INVALID_ROOM_NAME
+ *               message: Escribe un nombre de sala de 1 a 80 caracteres.
+ *               errors: [{ field: name, message: Escribe un nombre de sala de 1 a 80 caracteres. }]
  *       '401': { $ref: '#/components/responses/Unauthorized' }
  *       '409': { description: ACCOUNT_DELETION_PENDING }
  * /api/rooms/{id}:
