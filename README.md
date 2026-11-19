@@ -154,6 +154,7 @@ directorio-de-trabajo/
 | `POST` | `/api/auth/register` | Crear cuenta con correo y contraseña (Auth + perfil en Firestore) | Público | TS-01 / US-01 |
 | `GET` | `/api/users/username-availability?username=` | Consultar si un nombre de usuario está libre | Público | TS-01 / US-01 / US-02 |
 | `GET` | `/api/users/me` | Perfil del usuario autenticado (404 `PROFILE_NOT_FOUND` si aún no elige nombre de usuario) | Autenticado | TS-01 / US-02 / US-03 |
+| `DELETE` | `/api/users/me` | Eliminar cuenta, datos asociados y liberar username; devuelve 204 sin cuerpo | Autenticado | US-05 |
 | `POST` | `/api/users/me` | Completar el perfil después de «Continuar con Google» | Autenticado | TS-01 / US-02 |
 | `GET` | `/api/protected` | Verificación del ID token de Firebase | Autenticado | TS-01 |
 | `GET` | `/api/users` | Listado de usuarios | Solo Admin | Administración |
@@ -167,6 +168,12 @@ directorio-de-trabajo/
 ### Unicidad del nombre de usuario
 
 Cada nombre de usuario se reserva en la colección `usernames/{nombre en minúsculas}` dentro de la misma transacción que crea `users/{uid}`. Si dos personas piden el mismo nombre a la vez, solo una transacción lo consigue; la otra recibe 409 `USERNAME_TAKEN`. La comparación no distingue mayúsculas.
+
+### Eliminación de cuenta (US-05)
+
+Después de la confirmación del usuario, llamar a `DELETE /api/users/me` con el ID token y sin cuerpo. La respuesta exitosa es **204 sin contenido**. El frontend debe ejecutar `signOut` y navegar al Login; cancelar el modal no realiza ninguna petición. En caso de error, conservar la sesión y ofrecer reintentar: la limpieza puede haberse completado parcialmente.
+
+La política de salas/mensajes, el contrato requerido para TS-02, la recuperación y los casos de QA están en [docs/US-05-eliminar-cuenta.md](docs/US-05-eliminar-cuenta.md). Durante la eliminación, las escrituras de perfil existentes responden 409 `ACCOUNT_DELETION_PENDING`.
 
 ### Formato de errores
 

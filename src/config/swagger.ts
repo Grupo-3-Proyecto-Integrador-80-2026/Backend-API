@@ -14,7 +14,7 @@ const options: swaggerJsdoc.Options = {
     openapi: "3.0.0",
     info: {
       title: "API · Salón de Estudio Colaborativo",
-      version: "1.1.0",
+      version: "1.2.0",
       description: [
         "API REST del Salón de Estudio Colaborativo (Proyecto Integrador I, Grupo 3).",
         "",
@@ -139,7 +139,7 @@ const options: swaggerJsdoc.Options = {
           }
         },
         Unauthorized: {
-          description: "Sin token (`AUTH_REQUIRED`) o con un token inválido o expirado (`INVALID_TOKEN`).",
+          description: "Sin token (`AUTH_REQUIRED`) o token inválido, expirado, revocado o de una cuenta eliminada/deshabilitada (`INVALID_TOKEN`).",
           content: errorExample("AUTH_REQUIRED", "Debes iniciar sesión para continuar.")
         },
         InternalError: {
