@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: salon-backend-realtime
+    runtime: docker
+    plan: free
+    dockerContext: ./backend-realtime
+    dockerfilePath: ./backend-realtime/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/serviceAccountKey.json
