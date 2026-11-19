@@ -95,6 +95,19 @@ const options: swaggerJsdoc.Options = {
             avatarUrl: { type: "string", format: "uri", description: "Opcional; por defecto, la foto de Google." }
           }
         },
+        UpdateProfileRequest: {
+          type: "object",
+          minProperties: 1,
+          additionalProperties: false,
+          description: "Edición parcial; no se permiten id, role ni provider.",
+          properties: {
+            firstName: { type: "string", minLength: 1, maxLength: 50, example: "Ana María" },
+            lastName: { type: "string", minLength: 1, maxLength: 50, example: "Gómez Ruiz" },
+            username: { type: "string", minLength: 3, maxLength: 20, pattern: "^[A-Za-z0-9_]+$", example: "ana_24" },
+            email: { type: "string", format: "email", maxLength: 254, description: "Correo institucional terminado en .edu.co", example: "ana@univalle.edu.co" },
+            avatarUrl: { type: "string", format: "uri", nullable: true, description: "Dirección https o null para quitar el avatar." }
+          }
+        },
         UsernameAvailability: {
           type: "object",
           properties: {

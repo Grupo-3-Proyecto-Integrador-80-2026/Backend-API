@@ -4,6 +4,7 @@ import {
   getAllUsers,
   getMyProfile,
   deleteMyProfile,
+  updateMyProfile,
   createMyProfile,
   getUsernameAvailability
 } from "../controllers/user.controller";
@@ -12,6 +13,7 @@ import { verifyAdmin } from "../middlewares/admin.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   completeProfileSchema,
+  updateProfileSchema,
   usernameAvailabilitySchema
 } from "../validators/user.validator";
 
@@ -123,6 +125,66 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  *       500:
  *         $ref: '#/components/responses/InternalError'
+ *   patch:
+ *     summary: Editar mi perfil (US-04)
+ *     description: |
+ *       Edición parcial del perfil del usuario del token. El username se reserva/libera
+ *       atómicamente en Firestore, sin distinguir mayúsculas; Firebase Authentication
+ *       verifica la unicidad del correo y se actualiza junto con el perfil.
+ *       Los campos omitidos no cambian. Enviar `avatarUrl: null` quita el avatar.
+ *       El cliente debe refrescar el ID token tras cambiar el correo.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateProfileRequest'
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Perfil incompleto o inexistente (`PROFILE_NOT_FOUND`).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Username ocupado (`USERNAME_TAKEN`), correo ocupado (`EMAIL_TAKEN`) o eliminación pendiente (`ACCOUNT_DELETION_PENDING`).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             examples:
+ *               usernameTaken:
+ *                 value:
+ *                   success: false
+ *                   code: USERNAME_TAKEN
+ *                   message: Ese nombre de usuario ya está en uso.
+ *                   errors:
+ *                     - field: username
+ *                       message: Ese nombre de usuario ya está en uso. Prueba con otro.
+ *               emailTaken:
+ *                 value:
+ *                   success: false
+ *                   code: EMAIL_TAKEN
+ *                   message: Ese correo ya tiene una cuenta.
+ *                   errors:
+ *                     - field: email
+ *                       message: Ese correo ya tiene una cuenta. Inicia sesión o usa otro correo.
+ *       500:
+ *         $ref: '#/components/responses/InternalError'
  */
 router.get("/me", verifyFirebaseToken, getMyProfile);
 /**
@@ -152,6 +214,7 @@ router.get("/me", verifyFirebaseToken, getMyProfile);
  *         $ref: '#/components/responses/InternalError'
  */
 router.delete("/me", verifyFirebaseToken, deleteMyProfile);
+router.patch("/me", verifyFirebaseToken, requireActiveAccount, validate(updateProfileSchema), updateMyProfile);
 router.post(
   "/me",
   verifyFirebaseToken,

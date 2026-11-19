@@ -69,10 +69,10 @@ describe("US-05 | eliminación de cuenta", () => {
     await expect(deleteMyAccount("owner")).resolves.toBeUndefined();
     expect(mocks.finishAccountDeletion).toHaveBeenCalledWith("owner");
   });
-  it("bloquea completar el perfil durante una eliminación pendiente", async () => {
+  it.each(["POST", "PATCH"])("bloquea %s del perfil durante una eliminación pendiente", async (method) => {
     mocks.isAccountDeleting.mockResolvedValue(true);
     const response = await fetch(url, {
-      method: "POST", headers: { Authorization: "Bearer valid", "Content-Type": "application/json" },
+      method, headers: { Authorization: "Bearer valid", "Content-Type": "application/json" },
       body: JSON.stringify({ username: "ana_1" })
     });
     expect(response.status).toBe(409);

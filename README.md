@@ -155,6 +155,7 @@ directorio-de-trabajo/
 | `GET` | `/api/users/username-availability?username=` | Consultar si un nombre de usuario está libre | Público | TS-01 / US-01 / US-02 |
 | `GET` | `/api/users/me` | Perfil del usuario autenticado (404 `PROFILE_NOT_FOUND` si aún no elige nombre de usuario) | Autenticado | TS-01 / US-02 / US-03 |
 | `DELETE` | `/api/users/me` | Eliminar cuenta, datos asociados y liberar username; devuelve 204 sin cuerpo | Autenticado | US-05 |
+| `PATCH` | `/api/users/me` | Editar parcialmente mi perfil; valida unicidad de username y correo | Autenticado | US-04 |
 | `POST` | `/api/users/me` | Completar el perfil después de «Continuar con Google» | Autenticado | TS-01 / US-02 |
 | `GET` | `/api/protected` | Verificación del ID token de Firebase | Autenticado | TS-01 |
 | `GET` | `/api/users` | Listado de usuarios | Solo Admin | Administración |
@@ -174,6 +175,10 @@ Cada nombre de usuario se reserva en la colección `usernames/{nombre en minúsc
 Después de la confirmación del usuario, llamar a `DELETE /api/users/me` con el ID token y sin cuerpo. La respuesta exitosa es **204 sin contenido**. El frontend debe ejecutar `signOut` y navegar al Login; cancelar el modal no realiza ninguna petición. En caso de error, conservar la sesión y ofrecer reintentar: la limpieza puede haberse completado parcialmente.
 
 La política de salas/mensajes, el contrato requerido para TS-02, la recuperación y los casos de QA están en [docs/US-05-eliminar-cuenta.md](docs/US-05-eliminar-cuenta.md). Durante la eliminación, las escrituras de perfil existentes responden 409 `ACCOUNT_DELETION_PENDING`.
+
+### Edición de perfil (US-04)
+
+`GET /api/users/me` devuelve el perfil guardado. `PATCH /api/users/me` recibe uno o más de `firstName`, `lastName`, `username`, `email` y `avatarUrl` (URL https o `null` para quitarlo); los campos omitidos permanecen intactos. Ambas rutas requieren `Authorization: Bearer <Firebase ID token>`; el UID siempre se extrae del token. No enviar `id`, `role` ni `provider`. El cambio de username libera la reserva anterior y crea la nueva en una sola transacción; las colisiones devuelven 409 `USERNAME_TAKEN` con `errors[0].field = "username"`. Firebase Authentication valida el correo único y lo actualiza antes de persistirlo en Firestore; una colisión devuelve 409 `EMAIL_TAKEN` con `errors[0].field = "email"`. Tras cambiar el correo, refrescar el ID token del cliente (`getIdToken(true)`) para actualizar sus claims. «Cancelar» solo descarta el formulario en el frontend; no llama a PATCH.
 
 ### Formato de errores
 

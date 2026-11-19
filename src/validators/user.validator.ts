@@ -76,9 +76,22 @@ export const completeProfileSchema = z.object(
   bodyError
 );
 
+// US-04 · Edición parcial; los campos no enviados conservan su valor actual.
+// No se aceptan campos administrados por el servidor como id, role o provider.
+export const updateProfileSchema = z.strictObject({
+  firstName: personName("nombres").optional(),
+  lastName: personName("apellidos").optional(),
+  username: usernameSchema.optional(),
+  email: emailSchema.optional(),
+  avatarUrl: avatarUrlSchema.nullable().optional()
+}).refine((input) => Object.keys(input).length > 0, {
+  message: "Envía al menos un dato para actualizar tu perfil."
+});
+
 export const usernameAvailabilitySchema = z.object({
   username: usernameSchema
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type CompleteProfileInput = z.infer<typeof completeProfileSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

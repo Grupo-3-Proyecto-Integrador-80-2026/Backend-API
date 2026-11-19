@@ -108,6 +108,40 @@ export const createUserProfile = async (
   return { status, profile: (await getUserById(uid))! };
 };
 
+export const updateUserProfile = async (
+  uid: string,
+  changes: Partial<Pick<UserProfile, "firstName" | "lastName" | "username" | "email" | "avatarUrl">>
+): Promise<"updated" | "username-taken" | "profile-not-found"> => {
+  const userRef = users.doc(uid);
+  return db.runTransaction(async (tx) => {
+    const userDoc = await tx.get(userRef);
+    if (!userDoc.exists || !userDoc.get("username")) return "profile-not-found";
+
+    const previous = (userDoc.get("username") as string).toLowerCase();
+    const next = changes.username?.toLowerCase() ?? previous;
+    if (next !== previous) {
+      const nextRef = usernames.doc(next);
+      const oldRef = usernames.doc(previous);
+      // Firestore exige que TODAS las lecturas ocurran antes de la primera escritura.
+      const [nextDoc, oldDoc] = await tx.getAll(nextRef, oldRef);
+      if (nextDoc.exists) return "username-taken";
+      // Nunca liberar la reserva de otro usuario si los datos históricos están corruptos.
+      if (!oldDoc.exists || oldDoc.get("uid") !== uid) {
+        throw new Error("Username reservation is missing or belongs to another user");
+      }
+      tx.create(nextRef, { uid, createdAt: FieldValue.serverTimestamp() });
+      tx.delete(oldRef);
+    }
+
+    tx.update(userRef, {
+      ...changes,
+      usernameLower: next,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    return "updated";
+  });
+};
+
 export const getFirestoreSample = async () => {
   return await users.get();
 };

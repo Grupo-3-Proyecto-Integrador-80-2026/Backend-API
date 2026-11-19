@@ -5,7 +5,8 @@ import {
   getUserProfile,
   checkUsernameAvailability,
   registerWithEmail,
-  completeProfile
+  completeProfile,
+  editMyProfile
 } from "../services/user.service";
 
 // Obtener todos los usuarios
@@ -35,6 +36,11 @@ export const getMyProfile = async (
 export const deleteMyProfile = async (_req: Request, res: Response): Promise<void> => {
   await deleteMyAccount(res.locals.firebaseUser.uid);
   res.status(204).send();
+};
+
+export const updateMyProfile = async (req: Request, res: Response): Promise<void> => {
+  const user = await editMyProfile(res.locals.firebaseUser.uid, req.body);
+  res.status(200).json({ success: true, user });
 };
 
 // Completar el perfil del usuario autenticado (registro con Google)
