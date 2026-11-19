@@ -23,7 +23,7 @@ export const verifyFirebaseToken = async (
   }
 
   try {
-    res.locals.firebaseUser = await auth.verifyIdToken(token);
+    res.locals.firebaseUser = await auth.verifyIdToken(token, true);
   } catch (error) {
     const code = (error as { code?: string }).code;
 

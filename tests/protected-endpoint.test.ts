@@ -74,6 +74,6 @@ describe("US-03 | endpoints privados exigen ID token (E5)", () => {
       success: true,
       user: { uid: token.uid, email: token.email }
     });
-    expect(mocks.verifyIdToken).toHaveBeenCalledExactlyOnceWith("qa-local-valido");
+    expect(mocks.verifyIdToken).toHaveBeenCalledExactlyOnceWith("qa-local-valido", true);
   });
 });

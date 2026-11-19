@@ -1,7 +1,9 @@
 import { Router } from "express";
+import { requireActiveAccount } from "../middlewares/account.middleware";
 import {
   getAllUsers,
   getMyProfile,
+  deleteMyProfile,
   createMyProfile,
   getUsernameAvailability
 } from "../controllers/user.controller";
@@ -123,9 +125,11 @@ router.get(
  *         $ref: '#/components/responses/InternalError'
  */
 router.get("/me", verifyFirebaseToken, getMyProfile);
+router.delete("/me", verifyFirebaseToken, deleteMyProfile);
 router.post(
   "/me",
   verifyFirebaseToken,
+  requireActiveAccount,
   validate(completeProfileSchema),
   createMyProfile
 );
