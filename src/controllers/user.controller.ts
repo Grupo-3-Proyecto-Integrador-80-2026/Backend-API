@@ -4,7 +4,8 @@ import {
   getUserProfile,
   checkUsernameAvailability,
   registerWithEmail,
-  completeProfile
+  completeProfile,
+  editMyProfile
 } from "../services/user.service";
 
 // Obtener todos los usuarios
@@ -28,6 +29,11 @@ export const getMyProfile = async (
 ): Promise<void> => {
   const user = await getUserProfile(res.locals.firebaseUser.uid);
 
+  res.status(200).json({ success: true, user });
+};
+
+export const updateMyProfile = async (req: Request, res: Response): Promise<void> => {
+  const user = await editMyProfile(res.locals.firebaseUser.uid, req.body);
   res.status(200).json({ success: true, user });
 };
 
