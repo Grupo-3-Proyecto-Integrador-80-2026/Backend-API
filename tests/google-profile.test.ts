@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../src/config/firebase", () => ({ auth: mocks, db: {} }));
 vi.mock("../src/repositories/user.repository", () => mocks);
+vi.mock("../src/repositories/account.repository", () => ({ isAccountDeleting: async () => false }));
 
 const token: DecodedIdToken = {
   uid: "google-qa", sub: "google-qa", aud: "qa-local", iss: "qa-local",
@@ -51,7 +52,7 @@ describe("US-02 | HTTP real local; Firebase y repositorio simulados", () => {
     const response = await request();
     expect(response.status).toBe(404);
     expect(await response.json()).toMatchObject({ code: "PROFILE_NOT_FOUND" });
-    expect(mocks.verifyIdToken).toHaveBeenCalledExactlyOnceWith("qa-local-placeholder");
+    expect(mocks.verifyIdToken).toHaveBeenCalledExactlyOnceWith("qa-local-placeholder", true);
     expect(mocks.getUserById).toHaveBeenCalledExactlyOnceWith(token.uid);
   });
 

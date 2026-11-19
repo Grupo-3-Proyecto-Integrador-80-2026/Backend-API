@@ -152,7 +152,7 @@ const options: swaggerJsdoc.Options = {
           }
         },
         Unauthorized: {
-          description: "Sin token (`AUTH_REQUIRED`) o con un token inválido o expirado (`INVALID_TOKEN`).",
+          description: "Sin token (`AUTH_REQUIRED`) o token inválido, expirado, revocado o de una cuenta eliminada/deshabilitada (`INVALID_TOKEN`).",
           content: errorExample("AUTH_REQUIRED", "Debes iniciar sesión para continuar.")
         },
         InternalError: {

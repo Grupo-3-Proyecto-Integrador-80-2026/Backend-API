@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { deleteMyAccount } from "../services/account.service";
 import {
   getUsers,
   getUserProfile,
@@ -30,6 +31,11 @@ export const getMyProfile = async (
   const user = await getUserProfile(res.locals.firebaseUser.uid);
 
   res.status(200).json({ success: true, user });
+};
+
+export const deleteMyProfile = async (_req: Request, res: Response): Promise<void> => {
+  await deleteMyAccount(res.locals.firebaseUser.uid);
+  res.status(204).send();
 };
 
 export const updateMyProfile = async (req: Request, res: Response): Promise<void> => {

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../src/config/firebase", () => ({ auth: mocks, db: {} }));
 vi.mock("../src/repositories/user.repository", () => mocks);
+vi.mock("../src/repositories/account.repository", () => ({ isAccountDeleting: async () => false }));
 
 const profile = {
   id: "owner-1", firstName: "Ana", lastName: "Pérez", username: "ana_1",

@@ -1,7 +1,9 @@
 import { Router } from "express";
+import { requireActiveAccount } from "../middlewares/account.middleware";
 import {
   getAllUsers,
   getMyProfile,
+  deleteMyProfile,
   updateMyProfile,
   createMyProfile,
   getUsernameAvailability
@@ -116,7 +118,7 @@ router.get(
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       409:
- *         description: El nombre de usuario ya está en uso (`USERNAME_TAKEN`) o el perfil ya estaba completo (`PROFILE_EXISTS`).
+ *         description: Username ocupado (`USERNAME_TAKEN`), perfil completo (`PROFILE_EXISTS`) o eliminación pendiente (`ACCOUNT_DELETION_PENDING`).
  *         content:
  *           application/json:
  *             schema:
@@ -159,7 +161,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       409:
- *         description: Nombre de usuario ocupado (`USERNAME_TAKEN`) o correo ocupado (`EMAIL_TAKEN`).
+ *         description: Username ocupado (`USERNAME_TAKEN`), correo ocupado (`EMAIL_TAKEN`) o eliminación pendiente (`ACCOUNT_DELETION_PENDING`).
  *         content:
  *           application/json:
  *             schema:
@@ -185,10 +187,38 @@ router.get(
  *         $ref: '#/components/responses/InternalError'
  */
 router.get("/me", verifyFirebaseToken, getMyProfile);
-router.patch("/me", verifyFirebaseToken, validate(updateProfileSchema), updateMyProfile);
+/**
+ * @swagger
+ * /api/users/me:
+ *   delete:
+ *     summary: Eliminar mi cuenta definitivamente (US-05)
+ *     description: |
+ *       Solo elimina la cuenta del UID del token verificado (incluye comprobación de revocación).
+ *       No recibe cuerpo ni UID. El frontend debe solicitar confirmación antes de llamar.
+ *       Borra salas propias, mensajes de esas salas, mensajes propios en otras salas,
+ *       reservas de username y perfil en Firestore; después elimina Firebase Authentication.
+ *       Política de datos y recuperación documentada en docs/US-05-eliminar-cuenta.md.
+ *       Si falla, puede haber limpieza parcial: conservar la sesión y ofrecer reintentar DELETE.
+ *       Las nuevas escrituras de perfil se bloquean con ACCOUNT_DELETION_PENDING durante el proceso.
+ *       Tras 204, el frontend ejecuta signOut y redirige al Login. No intentar leer JSON de la respuesta.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: Cuenta y datos eliminados. Respuesta sin cuerpo.
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/InternalError'
+ */
+router.delete("/me", verifyFirebaseToken, deleteMyProfile);
+router.patch("/me", verifyFirebaseToken, requireActiveAccount, validate(updateProfileSchema), updateMyProfile);
 router.post(
   "/me",
   verifyFirebaseToken,
+  requireActiveAccount,
   validate(completeProfileSchema),
   createMyProfile
 );
