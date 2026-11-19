@@ -2,6 +2,8 @@
 
 Servicio Node.js/TypeScript independiente de la API REST. Usa Socket.IO 4 y el mismo proyecto Firebase que la API.
 
+Consultar el [contrato de eventos, respuestas y errores](../docs/eventos-socket.md).
+
 **Desarrollo:** desde esta carpeta, `npm ci`, `npm test`, `npm run build` y `npm start`. Para arrancar, exporta `GOOGLE_APPLICATION_CREDENTIALS` (ruta al JSON de Firebase Admin) y `FRONTEND_ORIGIN` (origen exacto, sin barra final). `PORT` vale 3001 por defecto. `GET /health` comprueba que el proceso HTTP está disponible.
 
 **Sistema completo:** desde la raíz de Backend-API, configura `.env` según `.env.example`, coloca la clave en `credentials/serviceAccountKey.json` y ejecuta `docker compose up --build`. Se espera el repositorio frontend como directorio hermano, con el nombre indicado en el Compose. Frontend: `http://localhost:8080`; API: `http://localhost:3000`; Socket.IO: `http://localhost:3001`.
