@@ -14,7 +14,7 @@ const options: swaggerJsdoc.Options = {
     openapi: "3.0.0",
     info: {
       title: "API · Salón de Estudio Colaborativo",
-      version: "1.1.0",
+      version: "1.2.0",
       description: [
         "API REST del Salón de Estudio Colaborativo (Proyecto Integrador I, Grupo 3).",
         "",
@@ -93,6 +93,19 @@ const options: swaggerJsdoc.Options = {
             firstName: { type: "string", maxLength: 50, description: "Opcional; por defecto, el nombre de Google.", example: "Ana María" },
             lastName: { type: "string", maxLength: 50, description: "Opcional; por defecto, el apellido de Google.", example: "Gómez Ruiz" },
             avatarUrl: { type: "string", format: "uri", description: "Opcional; por defecto, la foto de Google." }
+          }
+        },
+        UpdateProfileRequest: {
+          type: "object",
+          minProperties: 1,
+          additionalProperties: false,
+          description: "Edición parcial; no se permiten id, role ni provider.",
+          properties: {
+            firstName: { type: "string", minLength: 1, maxLength: 50, example: "Ana María" },
+            lastName: { type: "string", minLength: 1, maxLength: 50, example: "Gómez Ruiz" },
+            username: { type: "string", minLength: 3, maxLength: 20, pattern: "^[A-Za-z0-9_]+$", example: "ana_24" },
+            email: { type: "string", format: "email", maxLength: 254, description: "Correo institucional terminado en .edu.co", example: "ana@univalle.edu.co" },
+            avatarUrl: { type: "string", format: "uri", nullable: true, description: "Dirección https o null para quitar el avatar." }
           }
         },
         UsernameAvailability: {

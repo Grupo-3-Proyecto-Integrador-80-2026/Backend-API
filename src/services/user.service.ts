@@ -5,12 +5,14 @@ import {
   getUserById,
   isUsernameTaken,
   createUserProfile,
+  updateUserProfile,
   type AuthProvider,
   type UserProfile
 } from "../repositories/user.repository";
 import type {
   RegisterInput,
-  CompleteProfileInput
+  CompleteProfileInput,
+  UpdateProfileInput
 } from "../validators/user.validator";
 import { HttpError } from "../utils/http-error";
 
@@ -49,6 +51,42 @@ export const getUserProfile = async (uid: string): Promise<UserProfile> => {
   }
 
   return profile;
+};
+
+// Auth es la fuente de verdad del correo y garantiza su unicidad (también frente
+// a cuentas Google todavía sin perfil). Se revierte si la transacción falla.
+export const editMyProfile = async (uid: string, input: UpdateProfileInput): Promise<UserProfile> => {
+  const before = await getUserProfile(uid);
+  const emailChanged = input.email !== undefined && input.email !== before.email;
+  if (emailChanged) {
+    try {
+      await auth.updateUser(uid, { email: input.email });
+    } catch (error) {
+      if ((error as { code?: string }).code === "auth/email-already-exists") {
+        throw emailTakenError();
+      }
+      throw error;
+    }
+  }
+
+  try {
+    const result = await updateUserProfile(uid, input);
+    if (result === "username-taken") throw usernameTakenError();
+    if (result === "profile-not-found") {
+      throw new HttpError(404, "PROFILE_NOT_FOUND", "Tu perfil ya no está disponible.");
+    }
+  } catch (error) {
+    if (emailChanged) {
+      try {
+        await auth.updateUser(uid, { email: before.email });
+      } catch (rollbackError) {
+        console.error("Could not restore Firebase Auth email", uid, rollbackError);
+        throw new HttpError(500, "INTERNAL_ERROR", "No se pudo completar la actualización. Contacta al equipo de soporte.");
+      }
+    }
+    throw error;
+  }
+  return getUserProfile(uid);
 };
 
 export const checkUsernameAvailability = async (username: string) => {

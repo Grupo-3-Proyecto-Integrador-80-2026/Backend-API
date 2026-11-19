@@ -154,6 +154,7 @@ directorio-de-trabajo/
 | `POST` | `/api/auth/register` | Crear cuenta con correo y contraseña (Auth + perfil en Firestore) | Público | TS-01 / US-01 |
 | `GET` | `/api/users/username-availability?username=` | Consultar si un nombre de usuario está libre | Público | TS-01 / US-01 / US-02 |
 | `GET` | `/api/users/me` | Perfil del usuario autenticado (404 `PROFILE_NOT_FOUND` si aún no elige nombre de usuario) | Autenticado | TS-01 / US-02 / US-03 |
+| `PATCH` | `/api/users/me` | Editar parcialmente mi perfil; valida unicidad de username y correo | Autenticado | US-04 |
 | `POST` | `/api/users/me` | Completar el perfil después de «Continuar con Google» | Autenticado | TS-01 / US-02 |
 | `GET` | `/api/protected` | Verificación del ID token de Firebase | Autenticado | TS-01 |
 | `GET` | `/api/users` | Listado de usuarios | Solo Admin | Administración |
@@ -167,6 +168,10 @@ directorio-de-trabajo/
 ### Unicidad del nombre de usuario
 
 Cada nombre de usuario se reserva en la colección `usernames/{nombre en minúsculas}` dentro de la misma transacción que crea `users/{uid}`. Si dos personas piden el mismo nombre a la vez, solo una transacción lo consigue; la otra recibe 409 `USERNAME_TAKEN`. La comparación no distingue mayúsculas.
+
+### Edición de perfil (US-04)
+
+`GET /api/users/me` devuelve el perfil guardado. `PATCH /api/users/me` recibe uno o más de `firstName`, `lastName`, `username`, `email` y `avatarUrl` (URL https o `null` para quitarlo); los campos omitidos permanecen intactos. Ambas rutas requieren `Authorization: Bearer <Firebase ID token>`; el UID siempre se extrae del token. No enviar `id`, `role` ni `provider`. El cambio de username libera la reserva anterior y crea la nueva en una sola transacción; las colisiones devuelven 409 `USERNAME_TAKEN` con `errors[0].field = "username"`. Firebase Authentication valida el correo único y lo actualiza antes de persistirlo en Firestore; una colisión devuelve 409 `EMAIL_TAKEN` con `errors[0].field = "email"`. Tras cambiar el correo, refrescar el ID token del cliente (`getIdToken(true)`) para actualizar sus claims. «Cancelar» solo descarta el formulario en el frontend; no llama a PATCH.
 
 ### Formato de errores
 
