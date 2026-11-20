@@ -223,6 +223,23 @@ El backend implementa una separación estricta de responsabilidades:
 
 ---
 
+## 🌐 Despliegues en Producción (Render)
+
+El proyecto cuenta con **dos servicios backend desplegados en Render**:
+
+| Servicio | Descripción | URL |
+|---|---|---|
+| **API REST principal** | Autenticación, usuarios, endpoints HTTP y lógica de negocio. | [API REST](https://backend-api-grupo3.onrender.com) |
+| **Backend de tiempo real (WebSockets / Socket.IO)** | Comunicación en tiempo real para las salas colaborativas. | [Backend Realtime](https://salon-backend-realtime-indl.onrender.com/) |
+
+### Documentación relacionada
+
+- **Swagger:** https://backend-api-grupo3.onrender.com/api-docs
+- **Eventos Socket.IO:** [docs/eventos-socket.md](docs/eventos-socket.md)
+- **Servicio de tiempo real:** [backend-realtime/README.md](backend-realtime/README.md)
+
+> El servicio de tiempo real utiliza una URL independiente de la API REST principal.
+
 ## 🧪 Pruebas locales con los emuladores de Firebase
 
 Para probar sin tocar el proyecto real (requiere Java):
