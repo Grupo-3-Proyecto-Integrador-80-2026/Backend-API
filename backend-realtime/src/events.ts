@@ -5,6 +5,7 @@ export interface Message {
   id: string; roomId: string; authorId: string; text: string; createdAt: string;
 }
 export interface RoomStore {
+  watch(roomId: string, changed: (name: string | null) => void, failed: () => void): () => void;
   check(roomId: string, uid: string): Promise<void>;
   append(roomId: string, uid: string, text: string): Promise<Message>;
 }
@@ -26,10 +27,13 @@ export function registerRoomEvents(io: Server, store: RoomStore) {
   io.on("connection", (socket: Socket) => {
     const uid: string = socket.data.uid;
     let current: string | undefined;
+    let stopWatch: (() => void) | undefined;
     function leave() {
       if (!current) return;
       const roomId = current;
       current = undefined;
+      stopWatch?.();
+      stopWatch = undefined;
       const channel = `room:${roomId}`;
       socket.leave(channel);
       if (!members(channel).has(uid)) io.to(channel).emit("presence:left", { roomId, uid });
@@ -55,6 +59,16 @@ export function registerRoomEvents(io: Server, store: RoomStore) {
         const alreadyPresent = members(channel).has(uid);
         socket.join(channel);
         current = roomId;
+        stopWatch = store.watch(roomId, name => {
+          if (current !== roomId) return;
+          if (name !== null) socket.emit("room:updated", { roomId, name });
+          else {
+            socket.emit("room:deleted", { roomId });
+            leave();
+          }
+        }, () => {
+          if (current === roomId) socket.conn.close(); // El cliente se reconecta y revalida.
+        });
         if (!alreadyPresent) socket.to(channel).emit("presence:joined", { roomId, uid });
       }
       return { roomId, members: [...members(channel)] };

@@ -14,6 +14,7 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
   });
   const a = "a".repeat(20), b = "b".repeat(20), saved = [];
   registerRoomEvents(io, {
+    watch() { return () => {}; },
     async check(id) { if (![a, b].includes(id)) throw new EventError("ROOM_NOT_FOUND"); },
     async append(roomId, authorId, text) {
       const message = { id: "msg", roomId, authorId, text, createdAt: new Date().toISOString() };

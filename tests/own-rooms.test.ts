@@ -18,7 +18,9 @@ const firebase = vi.hoisted(() => {
     })
   });
   const tx = {
-    get: async (ref: {path: string}) => ({ exists: rows.has(ref.path) }),
+    get: async (ref: {path: string}) => ({
+      exists: rows.has(ref.path), get: (key: string) => rows.get(ref.path)?.[key]
+    }),
     create: (ref: {path: string}, data: Record<string, unknown>) => {
       if (rows.has(ref.path)) throw new Error("Documento existente");
       rows.set(ref.path, data);
@@ -52,6 +54,16 @@ function request(uid?: string, body?: object) {
 }
 
 describe("US-06 | Crear y visualizar salas propias", () => {
+  it.each(["PATCH", "DELETE"])("US-07: %s de invitado responde 403 sin modificar la sala", async method => {
+    const { room } = await (await request("ana", { name: "Álgebra" })).json();
+    const response = await fetch(`${url}/${room.id}`, {
+      method, headers: { Authorization: "Bearer luis", "Content-Type": "application/json" },
+      body: method === "PATCH" ? JSON.stringify({ name: "Otra" }) : undefined
+    });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ code: "HOST_REQUIRED" });
+    expect((await (await request("ana")).json()).rooms).toEqual([room]);
+  });
   it("devuelve una lista vacía y luego solo las salas creadas por el anfitrión", async () => {
     const empty = await request("ana");
     expect(empty.status).toBe(200);
