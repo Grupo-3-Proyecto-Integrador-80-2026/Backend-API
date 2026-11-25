@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken } from "../middlewares/auth.middleware";
-import { changeRoom, createRoom, ownRooms } from "../repositories/room.repository";
+import { changeRoom, createRoom, invitedRoom, ownRooms } from "../repositories/room.repository";
 import { HttpError } from "../utils/http-error";
 
 const router = Router();
@@ -15,8 +15,9 @@ function roomName(body: unknown): string {
   return name.trim();
 }
 
-router.param("id", (_req, _res, next, id) => {
-  if (!/^[A-Za-z0-9]{20}$/.test(id)) {
+router.param("id", (req, _res, next, id) => {
+  req.params.id = id.trim();
+  if (!/^[A-Za-z0-9]{20}$/.test(req.params.id)) {
     return next(new HttpError(400, "INVALID_ROOM_ID", "El ID de sala no es válido."));
   }
   next();
@@ -95,6 +96,24 @@ router.param("id", (_req, _res, next, id) => {
  *       name: id
  *       required: true
  *       schema: { type: string, pattern: '^[A-Za-z0-9]{20}$' }
+ *   get:
+ *     tags: [Salas]
+ *     summary: Validar el ID de invitación y obtener los datos de la sala
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       '200':
+ *         description: Comparar ownerId con el UID actual para mostrar controles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 room: { $ref: '#/components/schemas/Room' }
+ *       '400': { description: INVALID_ROOM_ID }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { description: ACCOUNT_INACTIVE }
+ *       '404': { description: ROOM_NOT_FOUND }
  *   patch:
  *     tags: [Salas]
  *     summary: Renombrar una sala propia
@@ -123,6 +142,9 @@ router.post("/", async (req, res) => {
 });
 router.get("/", async (_req, res) => {
   res.json({ success: true, rooms: await ownRooms(res.locals.firebaseUser.uid) });
+});
+router.get("/:id", async (req, res) => {
+  res.json({ success: true, room: await invitedRoom(req.params.id, res.locals.firebaseUser.uid) });
 });
 router.patch("/:id", async (req, res) => {
   await changeRoom(req.params.id, res.locals.firebaseUser.uid, roomName(req.body));

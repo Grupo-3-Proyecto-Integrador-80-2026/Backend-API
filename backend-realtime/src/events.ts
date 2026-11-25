@@ -11,10 +11,10 @@ export interface RoomStore {
 }
 
 function readId(payload: any): string {
-  if (typeof payload?.roomId !== "string" || !/^[A-Za-z0-9]{20}$/.test(payload.roomId)) {
+  if (typeof payload?.roomId !== "string" || !/^[A-Za-z0-9]{20}$/.test(payload.roomId.trim())) {
     throw new EventError("INVALID_ROOM_ID");
   }
-  return payload.roomId;
+  return payload.roomId.trim();
 }
 
 export function registerRoomEvents(io: Server, store: RoomStore) {
