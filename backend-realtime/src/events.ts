@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 
 export class EventError extends Error {}
 export interface Message {
-  id: string; roomId: string; authorId: string; text: string; createdAt: string;
+  id: string; roomId: string; authorId: string; authorName: string; text: string; createdAt: string;
 }
 export interface RoomStore {
   watch(roomId: string, changed: (name: string | null) => void, failed: () => void): () => void;
