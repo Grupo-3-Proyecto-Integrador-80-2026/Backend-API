@@ -4,6 +4,19 @@ import { HttpError } from "../utils/http-error";
 
 const rooms = () => db.collection("rooms");
 
+export async function invitedRoom(id: string, uid: string) {
+  const room = await rooms().doc(id).get();
+  if (!room.exists || room.get("deleting")) {
+    throw new HttpError(404, "ROOM_NOT_FOUND", "No se encontró la sala. Revisa el ID.");
+  }
+  const ownerId = room.get("ownerId");
+  const [user, marker, ownerMarker] = await db.getAll(db.collection("users").doc(uid),
+    db.collection("accountDeletions").doc(uid), db.collection("accountDeletions").doc(ownerId));
+  if (!user.exists || marker.exists) throw new HttpError(403, "ACCOUNT_INACTIVE", "Se requiere un perfil activo.");
+  if (ownerMarker.exists) throw new HttpError(404, "ROOM_NOT_FOUND", "La sala ya no está disponible.");
+  return { id, ownerId, name: room.get("name"), createdAt: room.get("createdAt").toDate().toISOString() };
+}
+
 export async function createRoom(ownerId: string, name: string) {
   const ref = rooms().doc();
   const createdAt = Timestamp.now();
