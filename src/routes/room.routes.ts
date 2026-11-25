@@ -104,7 +104,8 @@ router.param("id", (_req, _res, next, id) => {
  *       '204': { description: Sala actualizada sin cuerpo de respuesta }
  *       '400': { description: Nombre o ID inválido }
  *       '401': { $ref: '#/components/responses/Unauthorized' }
- *       '404': { description: Sala inexistente o ajena }
+ *       '403': { description: HOST_REQUIRED }
+ *       '404': { description: ROOM_NOT_FOUND }
  *   delete:
  *     tags: [Salas]
  *     summary: Eliminar una sala propia con todos sus mensajes
@@ -113,7 +114,8 @@ router.param("id", (_req, _res, next, id) => {
  *       '204': { description: Sala eliminada sin cuerpo de respuesta }
  *       '400': { description: ID inválido }
  *       '401': { $ref: '#/components/responses/Unauthorized' }
- *       '404': { description: Sala inexistente o ajena }
+ *       '403': { description: HOST_REQUIRED }
+ *       '404': { description: ROOM_NOT_FOUND }
  */
 router.post("/", async (req, res) => {
   const room = await createRoom(res.locals.firebaseUser.uid, roomName(req.body));

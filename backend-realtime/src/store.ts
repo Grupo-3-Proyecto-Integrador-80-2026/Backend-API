@@ -13,6 +13,8 @@ export function firestoreRooms(db: Firestore): RoomStore {
     }
   }
   return {
+    watch: (roomId, changed, failed) => db.collection("rooms").doc(roomId).onSnapshot(
+      room => changed(room.exists && !room.get("deleting") ? room.get("name") : null), failed),
     check: (roomId, uid) => db.runTransaction(tx => check(tx, roomId, uid)),
     append: (roomId, authorId, text) => db.runTransaction(async tx => {
       await check(tx, roomId, authorId);

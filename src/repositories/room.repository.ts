@@ -29,8 +29,11 @@ export async function changeRoom(id: string, uid: string, name?: string) {
   const ref = rooms().doc(id);
   await db.runTransaction(async tx => {
     const room = await tx.get(ref);
-    if (!room.exists || room.get("ownerId") !== uid || (name && room.get("deleting"))) {
+    if (!room.exists || (name && room.get("deleting"))) {
       throw new HttpError(404, "ROOM_NOT_FOUND", "No se encontró la sala entre tus salas.");
+    }
+    if (room.get("ownerId") !== uid) {
+      throw new HttpError(403, "HOST_REQUIRED", "Solo el anfitrión puede modificar la sala.");
     }
     tx.update(ref, name ? { name } : { deleting: true });
   });
