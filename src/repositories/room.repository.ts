@@ -38,6 +38,26 @@ export async function ownRooms(uid: string) {
   }));
 }
 
+export async function roomHistory(id: string, uid: string, limit: number, before?: string) {
+  await invitedRoom(id, uid);
+  const messages = db.collection("messages");
+  let query = messages.where("roomId", "==", id).orderBy("createdAt", "desc");
+  if (before) {
+    const cursor = await messages.doc(before).get();
+    if (!cursor.exists || cursor.get("roomId") !== id) {
+      throw new HttpError(400, "INVALID_CURSOR", "Vuelve a cargar el historial.");
+    }
+    // El snapshot incluye el ID como desempate cuando coinciden las fechas.
+    query = query.startAfter(cursor);
+  }
+  const page = await query.limit(limit + 1).get();
+  const items = page.docs.slice(0, limit).reverse().map(doc => ({
+    id: doc.id, roomId: id, authorId: doc.get("authorId"), authorName: doc.get("authorName") ?? "Estudiante",
+    text: doc.get("text"), createdAt: doc.get("createdAt").toDate().toISOString()
+  }));
+  return { messages: items, nextBefore: page.size > limit ? items[0].id : null };
+}
+
 export async function changeRoom(id: string, uid: string, name?: string) {
   const ref = rooms().doc(id);
   await db.runTransaction(async tx => {

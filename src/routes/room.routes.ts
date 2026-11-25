@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken } from "../middlewares/auth.middleware";
-import { changeRoom, createRoom, invitedRoom, ownRooms } from "../repositories/room.repository";
+import { changeRoom, createRoom, invitedRoom, ownRooms, roomHistory } from "../repositories/room.repository";
 import { HttpError } from "../utils/http-error";
 
 const router = Router();
@@ -154,6 +154,40 @@ router.patch("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   await changeRoom(req.params.id, res.locals.firebaseUser.uid);
   res.status(204).end();
+});
+
+
+/**
+ * @openapi
+ * /api/rooms/{id}/messages:
+ *   get:
+ *     tags: [Salas]
+ *     summary: Consultar los últimos mensajes o cargar la página anterior
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 50 } }
+ *       - { in: query, name: before, description: nextBefore de la página previa, schema: { type: string } }
+ *     responses:
+ *       '200':
+ *         description: Página en orden cronológico; nextBefore nulo al terminar.
+ *         content:
+ *           application/json:
+ *             example: { success: true, messages: [{ id: X, roomId: R, authorId: U, authorName: Ana, text: Hola, createdAt: '2026-11-24T15:00:00Z' }], nextBefore: null }
+ *       '400': { description: INVALID_ROOM_ID / INVALID_LIMIT / INVALID_CURSOR }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { description: ACCOUNT_INACTIVE }
+ *       '404': { description: ROOM_NOT_FOUND }
+ */
+router.get("/:id/messages", async (req, res) => {
+  const { limit = "50", before } = req.query;
+  if (typeof limit !== "string" || !/^(?:[1-9]|[1-4]\d|50)$/.test(limit)) {
+    throw new HttpError(400, "INVALID_LIMIT", "Elige entre 1 y 50 mensajes.");
+  }
+  if (before !== undefined && (typeof before !== "string" || !/^[A-Za-z0-9]{20}$/.test(before))) {
+    throw new HttpError(400, "INVALID_CURSOR", "Vuelve a cargar el historial.");
+  }
+  res.json({ success: true, ...await roomHistory(req.params.id, res.locals.firebaseUser.uid, Number(limit), before) });
 });
 
 export default router;
