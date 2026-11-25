@@ -16,10 +16,11 @@ function roomName(body: unknown): string {
 }
 
 router.param("id", (req, _res, next, id) => {
-  req.params.id = id.trim();
-  if (!/^[A-Za-z0-9]{20}$/.test(req.params.id)) {
+  const normalized: string = id.trim();
+  if (!/^[A-Za-z0-9]{20}$/.test(normalized)) {
     return next(new HttpError(400, "INVALID_ROOM_ID", "El ID de sala no es válido."));
   }
+  req.params.id = normalized;
   next();
 });
 
