@@ -236,6 +236,7 @@ El proyecto cuenta con **dos servicios backend desplegados en Render**:
 
 - **Swagger:** https://backend-api-grupo3.onrender.com/api-docs
 - **Eventos Socket.IO:** [docs/eventos-socket.md](docs/eventos-socket.md)
+- **Sprint 3 · entrega BE y revisión en producción:** [DUE S3-C06 y S3-C07](docs/sprint-3/DUE-backend.md)
 - **Servicio de tiempo real:** [backend-realtime/README.md](backend-realtime/README.md)
 
 > El servicio de tiempo real utiliza una URL independiente de la API REST principal.

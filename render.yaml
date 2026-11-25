@@ -1,5 +1,15 @@
 services:
   - type: web
+    name: backend-api-grupo3
+    runtime: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/serviceAccountKey.json
+  - type: web
     name: salon-backend-realtime
     runtime: docker
     plan: free

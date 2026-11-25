@@ -32,7 +32,7 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
   t.after(() => io.close());
   const client = token => {
     const socket = connect(`http://127.0.0.1:${http.address().port}`, {
-      auth: { token }, transports: ["websocket"], reconnection: false
+      auth: { token }, transports: ["websocket"], reconnectionDelay: 30
     });
     t.after(() => socket.disconnect());
     return socket;
@@ -80,6 +80,12 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
   const again = once(tab, "message:new");
   await ana.emitWithAck("message:send", {roomId:a,text:"De vuelta"});
   assert.equal((await again)[0].text, "De vuelta");
+  const recovered = new Promise(resolve => tab.once("connect", () => resolve(join(tab, a))));
+  tab.io.engine.close(); // Pérdida del transporte; el Manager debe abrir otro sin llamar connect().
+  assert.deepEqual((await recovered).members.sort(), ["ana", "luis"]);
+  const afterRecovery = once(tab, "message:new");
+  await ana.emitWithAck("message:send", {roomId:a,text:"Red recuperada"});
+  assert.equal((await afterRecovery)[0].text, "Red recuperada");
   const closed = once(tab, "room:deleted");
   for (const changed of watchers.get(a)) changed(null);
   assert.deepEqual((await closed)[0], {roomId:a});
