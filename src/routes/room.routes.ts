@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken } from "../middlewares/auth.middleware";
-import { changeRoom, createRoom, ownRooms } from "../repositories/room.repository";
+import { changeRoom, createRoom, invitedRoom, ownRooms, roomHistory } from "../repositories/room.repository";
 import { HttpError } from "../utils/http-error";
 
 const router = Router();
@@ -15,10 +15,12 @@ function roomName(body: unknown): string {
   return name.trim();
 }
 
-router.param("id", (_req, _res, next, id) => {
-  if (!/^[A-Za-z0-9]{20}$/.test(id)) {
+router.param("id", (req, _res, next, id) => {
+  const normalized: string = id.trim();
+  if (!/^[A-Za-z0-9]{20}$/.test(normalized)) {
     return next(new HttpError(400, "INVALID_ROOM_ID", "El ID de sala no es válido."));
   }
+  req.params.id = normalized;
   next();
 });
 
@@ -95,6 +97,24 @@ router.param("id", (_req, _res, next, id) => {
  *       name: id
  *       required: true
  *       schema: { type: string, pattern: '^[A-Za-z0-9]{20}$' }
+ *   get:
+ *     tags: [Salas]
+ *     summary: Validar el ID de invitación y obtener los datos de la sala
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       '200':
+ *         description: Comparar ownerId con el UID actual para mostrar controles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 room: { $ref: '#/components/schemas/Room' }
+ *       '400': { description: INVALID_ROOM_ID }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { description: ACCOUNT_INACTIVE }
+ *       '404': { description: ROOM_NOT_FOUND }
  *   patch:
  *     tags: [Salas]
  *     summary: Renombrar una sala propia
@@ -124,6 +144,9 @@ router.post("/", async (req, res) => {
 router.get("/", async (_req, res) => {
   res.json({ success: true, rooms: await ownRooms(res.locals.firebaseUser.uid) });
 });
+router.get("/:id", async (req, res) => {
+  res.json({ success: true, room: await invitedRoom(req.params.id, res.locals.firebaseUser.uid) });
+});
 router.patch("/:id", async (req, res) => {
   await changeRoom(req.params.id, res.locals.firebaseUser.uid, roomName(req.body));
   res.status(204).end();
@@ -131,6 +154,40 @@ router.patch("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   await changeRoom(req.params.id, res.locals.firebaseUser.uid);
   res.status(204).end();
+});
+
+
+/**
+ * @openapi
+ * /api/rooms/{id}/messages:
+ *   get:
+ *     tags: [Salas]
+ *     summary: Consultar los últimos mensajes o cargar la página anterior
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 50 } }
+ *       - { in: query, name: before, description: nextBefore de la página previa, schema: { type: string } }
+ *     responses:
+ *       '200':
+ *         description: Página en orden cronológico; nextBefore nulo al terminar.
+ *         content:
+ *           application/json:
+ *             example: { success: true, messages: [{ id: X, roomId: R, authorId: U, authorName: Ana, text: Hola, createdAt: '2026-11-24T15:00:00Z' }], nextBefore: null }
+ *       '400': { description: INVALID_ROOM_ID / INVALID_LIMIT / INVALID_CURSOR }
+ *       '401': { $ref: '#/components/responses/Unauthorized' }
+ *       '403': { description: ACCOUNT_INACTIVE }
+ *       '404': { description: ROOM_NOT_FOUND }
+ */
+router.get("/:id/messages", async (req, res) => {
+  const { limit = "50", before } = req.query;
+  if (typeof limit !== "string" || !/^(?:[1-9]|[1-4]\d|50)$/.test(limit)) {
+    throw new HttpError(400, "INVALID_LIMIT", "Elige entre 1 y 50 mensajes.");
+  }
+  if (before !== undefined && (typeof before !== "string" || !/^[A-Za-z0-9]{20}$/.test(before))) {
+    throw new HttpError(400, "INVALID_CURSOR", "Vuelve a cargar el historial.");
+  }
+  res.json({ success: true, ...await roomHistory(req.params.id, res.locals.firebaseUser.uid, Number(limit), before) });
 });
 
 export default router;

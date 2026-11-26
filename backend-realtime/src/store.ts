@@ -11,17 +11,18 @@ export function firestoreRooms(db: Firestore): RoomStore {
     if (owner !== uid && (await tx.get(db.collection("accountDeletions").doc(owner))).exists) {
       throw new EventError("ROOM_NOT_FOUND");
     }
+    return String(user.get("username") || "Estudiante");
   }
   return {
     watch: (roomId, changed, failed) => db.collection("rooms").doc(roomId).onSnapshot(
       room => changed(room.exists && !room.get("deleting") ? room.get("name") : null), failed),
-    check: (roomId, uid) => db.runTransaction(tx => check(tx, roomId, uid)),
+    check: async (roomId, uid) => { await db.runTransaction(tx => check(tx, roomId, uid)); },
     append: (roomId, authorId, text) => db.runTransaction(async tx => {
-      await check(tx, roomId, authorId);
+      const authorName = await check(tx, roomId, authorId);
       const ref = db.collection("messages").doc();
       const createdAt = Timestamp.now();
-      tx.create(ref, { roomId, authorId, text, createdAt });
-      return { id: ref.id, roomId, authorId, text, createdAt: createdAt.toDate().toISOString() };
+      tx.create(ref, { roomId, authorId, authorName, text, createdAt });
+      return { id: ref.id, roomId, authorId, authorName, text, createdAt: createdAt.toDate().toISOString() };
     })
   };
 }

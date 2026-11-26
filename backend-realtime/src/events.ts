@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 
 export class EventError extends Error {}
 export interface Message {
-  id: string; roomId: string; authorId: string; text: string; createdAt: string;
+  id: string; roomId: string; authorId: string; authorName: string; text: string; createdAt: string;
 }
 export interface RoomStore {
   watch(roomId: string, changed: (name: string | null) => void, failed: () => void): () => void;
@@ -11,10 +11,10 @@ export interface RoomStore {
 }
 
 function readId(payload: any): string {
-  if (typeof payload?.roomId !== "string" || !/^[A-Za-z0-9]{20}$/.test(payload.roomId)) {
+  if (typeof payload?.roomId !== "string" || !/^[A-Za-z0-9]{20}$/.test(payload.roomId.trim())) {
     throw new EventError("INVALID_ROOM_ID");
   }
-  return payload.roomId;
+  return payload.roomId.trim();
 }
 
 export function registerRoomEvents(io: Server, store: RoomStore) {

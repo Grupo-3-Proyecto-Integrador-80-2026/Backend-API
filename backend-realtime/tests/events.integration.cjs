@@ -13,8 +13,13 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
     return { uid: token, exp: Math.floor(Date.now() / 1000) + 3600 };
   });
   const a = "a".repeat(20), b = "b".repeat(20), saved = [];
+  const watchers = new Map();
   registerRoomEvents(io, {
-    watch() { return () => {}; },
+    watch(id, changed) {
+      if (!watchers.has(id)) watchers.set(id, new Set());
+      watchers.get(id).add(changed);
+      return () => watchers.get(id).delete(changed);
+    },
     async check(id) { if (![a, b].includes(id)) throw new EventError("ROOM_NOT_FOUND"); },
     async append(roomId, authorId, text) {
       const message = { id: "msg", roomId, authorId, text, createdAt: new Date().toISOString() };
@@ -27,7 +32,7 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
   t.after(() => io.close());
   const client = token => {
     const socket = connect(`http://127.0.0.1:${http.address().port}`, {
-      auth: { token }, transports: ["websocket"], reconnection: false
+      auth: { token }, transports: ["websocket"], reconnectionDelay: 30
     });
     t.after(() => socket.disconnect());
     return socket;
@@ -66,4 +71,23 @@ test("handshake, membresía, mensajes persistidos y presencia por UID", { timeou
   assert.deepEqual(departures, [{ roomId: a, uid: "luis" }]);
   await join(sol, b); // Barrera: ya recibió todos los paquetes anteriores.
   assert.equal(leaked, false);
+  assert.equal((await ana.emitWithAck("message:send", {roomId:a,text:"  "})).code, "INVALID_TEXT");
+  assert.equal(saved.length, 1);
+  const rejoined = once(ana, "presence:joined");
+  tab.once("connect", () => join(tab, ` ${a} `));
+  tab.connect();
+  await rejoined;
+  const again = once(tab, "message:new");
+  await ana.emitWithAck("message:send", {roomId:a,text:"De vuelta"});
+  assert.equal((await again)[0].text, "De vuelta");
+  const recovered = new Promise(resolve => tab.once("connect", () => resolve(join(tab, a))));
+  tab.io.engine.close(); // Pérdida del transporte; el Manager debe abrir otro sin llamar connect().
+  assert.deepEqual((await recovered).members.sort(), ["ana", "luis"]);
+  const afterRecovery = once(tab, "message:new");
+  await ana.emitWithAck("message:send", {roomId:a,text:"Red recuperada"});
+  assert.equal((await afterRecovery)[0].text, "Red recuperada");
+  const closed = once(tab, "room:deleted");
+  for (const changed of watchers.get(a)) changed(null);
+  assert.deepEqual((await closed)[0], {roomId:a});
+  assert.equal((await tab.emitWithAck("message:send", {roomId:a,text:"Ya no"})).code, "NOT_IN_ROOM");
 });
